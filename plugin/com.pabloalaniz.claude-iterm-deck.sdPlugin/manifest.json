@@ -1,0 +1,235 @@
+{
+  "Name": "Claude iTerm Deck",
+  "Version": "0.3.0.0",
+  "Author": "Pablo Alaniz",
+  "Description": "Controla sesiones de Claude Code en iTerm2: una tecla por sesión con su estado (working/idle/waiting) y teclas 1/2/3 para responder prompts sin cambiar de tab.",
+  "UUID": "com.pabloalaniz.claude-iterm-deck",
+  "Category": "Claude iTerm Deck",
+  "CategoryIcon": "imgs/plugin/category-icon",
+  "Icon": "imgs/plugin/marketplace",
+  "CodePath": "bin/plugin.js",
+  "SDKVersion": 3,
+  "Software": {
+    "MinimumVersion": "7.1"
+  },
+  "OS": [
+    {
+      "Platform": "mac",
+      "MinimumVersion": "12"
+    }
+  ],
+  "Nodejs": {
+    "Version": "20",
+    "Debug": "enabled"
+  },
+  "Actions": [
+    {
+      "Name": "Sesión Claude",
+      "UUID": "com.pabloalaniz.claude-iterm-deck.tab",
+      "Icon": "imgs/actions/tab",
+      "Tooltip": "Sesión N de Claude Code (nombre, estado, modo, agentes). Tap: enfocar. 0,5 s: limpiar estado. 3 s: Esc.",
+      "PropertyInspectorPath": "ui/tab.html",
+      "Controllers": [
+        "Keypad"
+      ],
+      "UserTitleEnabled": false,
+      "States": [
+        {
+          "Image": "imgs/actions/tab",
+          "TitleAlignment": "middle"
+        }
+      ],
+      "DisableAutomaticStates": true
+    },
+    {
+      "Name": "Responder 1/2/3",
+      "UUID": "com.pabloalaniz.claude-iterm-deck.answer",
+      "Icon": "imgs/actions/answer",
+      "Tooltip": "Envía 1, 2 o 3 a la sesión N de Claude Code sin cambiar de tab.",
+      "PropertyInspectorPath": "ui/answer.html",
+      "Controllers": [
+        "Keypad"
+      ],
+      "UserTitleEnabled": false,
+      "States": [
+        {
+          "Image": "imgs/actions/answer",
+          "TitleAlignment": "middle"
+        }
+      ],
+      "DisableAutomaticStates": true
+    },
+    {
+      "Name": "Ir a iTerm2",
+      "UUID": "com.pabloalaniz.claude-iterm-deck.iterm",
+      "Icon": "imgs/actions/iterm",
+      "Tooltip": "Trae iTerm2 al frente.",
+      "Controllers": [
+        "Keypad"
+      ],
+      "UserTitleEnabled": false,
+      "States": [
+        {
+          "Image": "imgs/actions/iterm"
+        }
+      ],
+      "DisableAutomaticStates": true
+    },
+    {
+      "Name": "Tab anterior / siguiente",
+      "UUID": "com.pabloalaniz.claude-iterm-deck.nav",
+      "Icon": "imgs/actions/nav",
+      "Tooltip": "Cambia a la tab anterior o siguiente de la ventana actual de iTerm2.",
+      "PropertyInspectorPath": "ui/nav.html",
+      "Controllers": [
+        "Keypad"
+      ],
+      "UserTitleEnabled": false,
+      "States": [
+        {
+          "Image": "imgs/actions/nav"
+        }
+      ],
+      "DisableAutomaticStates": true
+    },
+    {
+      "Name": "Modo (Shift+Tab)",
+      "UUID": "com.pabloalaniz.claude-iterm-deck.mode",
+      "Icon": "imgs/actions/mode",
+      "Tooltip": "Envía Shift+Tab a la sesión activa para ciclar el modo de permisos de Claude Code.",
+      "Controllers": [
+        "Keypad"
+      ],
+      "UserTitleEnabled": false,
+      "States": [
+        {
+          "Image": "imgs/actions/mode"
+        }
+      ],
+      "DisableAutomaticStates": true
+    },
+    {
+      "Name": "Esc (interrumpir)",
+      "UUID": "com.pabloalaniz.claude-iterm-deck.esc",
+      "Icon": "imgs/actions/esc",
+      "Tooltip": "Envía Escape (interrumpir) a la sesión del slot elegido, o a la sesión activa de iTerm2.",
+      "Controllers": [
+        "Keypad"
+      ],
+      "UserTitleEnabled": false,
+      "States": [
+        {
+          "Image": "imgs/actions/esc"
+        }
+      ],
+      "DisableAutomaticStates": true,
+      "PropertyInspectorPath": "ui/slot-optional.html"
+    },
+    {
+      "Name": "Enter",
+      "UUID": "com.pabloalaniz.claude-iterm-deck.enter",
+      "Icon": "imgs/actions/enter",
+      "Tooltip": "Envía Enter a la sesión del slot elegido, o a la sesión activa de iTerm2.",
+      "Controllers": [
+        "Keypad"
+      ],
+      "UserTitleEnabled": false,
+      "States": [
+        {
+          "Image": "imgs/actions/enter"
+        }
+      ],
+      "DisableAutomaticStates": true,
+      "PropertyInspectorPath": "ui/slot-optional.html"
+    },
+    {
+      "Name": "Info de sesión",
+      "UUID": "com.pabloalaniz.claude-iterm-deck.info",
+      "Icon": "imgs/actions/info",
+      "Tooltip": "Modelo, modo de permisos, agentes, costo y carpeta de la sesión N (o de la seleccionada).",
+      "Controllers": [
+        "Keypad"
+      ],
+      "UserTitleEnabled": false,
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "imgs/actions/info"
+        }
+      ],
+      "PropertyInspectorPath": "ui/slot-sel.html"
+    },
+    {
+      "Name": "Vista",
+      "UUID": "com.pabloalaniz.claude-iterm-deck.view",
+      "Icon": "imgs/actions/view",
+      "Tooltip": "Identifica la vista (focus / standard / dense). Tap: cambiar de vista y pausar el cambio automático 10 min.",
+      "Controllers": [
+        "Keypad"
+      ],
+      "UserTitleEnabled": false,
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "imgs/actions/view"
+        }
+      ],
+      "PropertyInspectorPath": "ui/view.html"
+    },
+    {
+      "Name": "Setup",
+      "UUID": "com.pabloalaniz.claude-iterm-deck.setup",
+      "Icon": "imgs/actions/setup",
+      "Tooltip": "Diagnóstico: hooks, jq, it2, Automatización, API de iTerm2, procesos claude. Tap: volver a comprobar.",
+      "Controllers": [
+        "Keypad"
+      ],
+      "UserTitleEnabled": false,
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "imgs/actions/setup"
+        }
+      ]
+    },
+    {
+      "Name": "Uso",
+      "UUID": "com.pabloalaniz.claude-iterm-deck.usage",
+      "Icon": "imgs/actions/usage",
+      "Tooltip": "Uso de la suscripción: ventana de 5 h (tap: 7 días) con cuenta regresiva al reset.",
+      "Controllers": [
+        "Keypad"
+      ],
+      "UserTitleEnabled": false,
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "imgs/actions/usage"
+        }
+      ]
+    }
+  ],
+  "Profiles": [
+    {
+      "Name": "Claude iTerm Deck",
+      "DeviceType": 2,
+      "Readonly": false,
+      "DontAutoSwitchWhenInstalled": true,
+      "AutoInstall": false
+    },
+    {
+      "Name": "Claude iTerm Deck Focus",
+      "DeviceType": 2,
+      "Readonly": false,
+      "DontAutoSwitchWhenInstalled": true,
+      "AutoInstall": false
+    },
+    {
+      "Name": "Claude iTerm Deck Dense",
+      "DeviceType": 2,
+      "Readonly": false,
+      "DontAutoSwitchWhenInstalled": true,
+      "AutoInstall": false
+    }
+  ]
+}

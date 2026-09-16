@@ -1,0 +1,35 @@
+{
+  "name": "claude-iterm-deck",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Stream Deck plugin para manejar sesiones de Claude Code en iTerm2",
+  "scripts": {
+    "build": "rollup -c",
+    "watch": "rollup -c -w --watch.onEnd=\"streamdeck restart com.pabloalaniz.claude-iterm-deck\"",
+    "link": "streamdeck link com.pabloalaniz.claude-iterm-deck.sdPlugin",
+    "restart": "streamdeck restart com.pabloalaniz.claude-iterm-deck",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test 'tests/**/*.test.ts' && ../tests/hook.test.sh",
+    "profiles": "node ../profile/build-profile.mjs --out com.pabloalaniz.claude-iterm-deck.sdPlugin",
+    "icons": "node tools/make-icons.mjs",
+    "validate": "streamdeck validate com.pabloalaniz.claude-iterm-deck.sdPlugin",
+    "pack": "npm run build && npm run profiles && npm run hooks && streamdeck validate com.pabloalaniz.claude-iterm-deck.sdPlugin && streamdeck pack com.pabloalaniz.claude-iterm-deck.sdPlugin --output ../dist --force",
+    "hooks": "rm -rf com.pabloalaniz.claude-iterm-deck.sdPlugin/hooks && cp -R ../hooks com.pabloalaniz.claude-iterm-deck.sdPlugin/hooks"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@elgato/cli": "^1.9.0",
+    "@rollup/plugin-commonjs": "^29.0.2",
+    "@rollup/plugin-node-resolve": "^15.2.2",
+    "@rollup/plugin-terser": "^1.0.0",
+    "@rollup/plugin-typescript": "^12.1.0",
+    "@tsconfig/node20": "^20.1.2",
+    "@types/node": "~24.1.0",
+    "rollup": "^4.0.2",
+    "tslib": "^2.6.2",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "@elgato/streamdeck": "^2.1.2"
+  }
+}

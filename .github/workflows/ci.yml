@@ -1,0 +1,21 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - run: brew install jq
+      - run: npm ci
+        working-directory: plugin
+      - run: npx tsc --noEmit
+        working-directory: plugin
+      - run: npm test
+        working-directory: plugin
+      - run: npm run build && npm run profiles && npm run hooks && npx streamdeck validate com.pabloalaniz.claude-iterm-deck.sdPlugin
+        working-directory: plugin

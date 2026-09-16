@@ -1,0 +1,93 @@
+#!/bin/bash
+# Hook de Claude Code: replica el estado de cada sesión en
+# ~/.local/state/claude-deck/sessions/<ITERM_UUID>.json para el plugin de Stream Deck.
+# Una sola invocación de jq por evento. Nunca falla ni escribe en stdout
+# (stdout de un hook puede inyectarse como contexto o interferir con PermissionRequest).
+set -u
+exec 1>/dev/null
+
+STATE_DIR="${CLAUDE_DECK_STATE_DIR:-$HOME/.local/state/claude-deck/sessions}"
+JQ="$(command -v jq || echo /opt/homebrew/bin/jq)"
+
+[[ -n "${ITERM_SESSION_ID:-}" ]] || exit 0
+[[ -x "$JQ" ]] || exit 0
+
+uuid="${ITERM_SESSION_ID#*:}"
+[[ "$uuid" =~ ^[A-Fa-f0-9-]+$ ]] || exit 0
+
+file="$STATE_DIR/$uuid.json"
+input="$(cat)"
+prev='{}'
+[[ -s "$file" ]] && prev="$(cat "$file" 2>/dev/null)" && [[ "$prev" == \{* ]] || prev='{}'
+
+# Salida: JSON nuevo, "DELETE", o vacío (evento irrelevante).
+out="$(printf '%s' "$input" | "$JQ" -c --arg uuid "$uuid" --argjson prev "$prev" '
+  def summary:
+    (.tool_name // "") as $t | (.tool_input // {}) as $i |
+    (if $t == "Bash" then "$ " + (($i.command // "") | gsub("\\s+"; " "))
+     elif ($i.file_path // null) != null then ($i.file_path | split("/") | last)
+     elif $t == "Agent" then ($i.description // $t)
+     elif $t == "AskUserQuestion" then ($i.questions[0].question // "Pregunta")
+     elif $t == "ExitPlanMode" then "Aprobar plan"
+     else $t end) | .[0:90];
+  def msg: ((.message // "") | .[0:90]);
+  def agents: ($prev.agents // 0);
+  def base($status; $kind; $detail):
+    {
+      iterm_session_id: $uuid,
+      status: $status,
+      kind: $kind,
+      detail: $detail,
+      event: .hook_event_name,
+      cwd: (.cwd // $prev.cwd // ""),
+      project: ((.cwd // $prev.cwd // "") | split("/") | last // ""),
+      claude_session_id: (.session_id // $prev.claude_session_id // ""),
+      transcript_path: (.transcript_path // $prev.transcript_path // ""),
+      permission_mode: (.permission_mode // $prev.permission_mode // ""),
+      model: (.model // $prev.model // ""),
+      suggestion: "",
+      error: "",
+      agents: agents,
+      ts: (now | floor)
+    };
+  . as $in |
+  (.hook_event_name // "") as $e |
+  (.tool_name // "") as $tool |
+  if $e == "SessionEnd" then "DELETE"
+  elif $e == "SessionStart" then base("idle"; ""; "") | .agents = 0
+  elif $e == "UserPromptSubmit" then base("working"; ""; "") | .agents = 0
+  elif $e == "PreToolUse" then
+    (if $tool == "AskUserQuestion" then base("waiting"; "question"; summary)
+     elif $tool == "ExitPlanMode" then base("waiting"; "plan"; summary)
+     else base("working"; "tool"; summary) end)
+  elif $e == "PostToolUse" then base("working"; "tool"; summary)
+  elif $e == "PostToolUseFailure" then base("working"; "tool"; "✗ " + summary) | .error = (($in.error // "") | .[0:90])
+  elif $e == "PostToolBatch" or $e == "PermissionDenied" or $e == "ElicitationResult" then base("working"; ""; "")
+  elif $e == "PermissionRequest" then
+    base("waiting"; "permission"; summary)
+    | .suggestion = ((($in.permission_suggestions // []) | .[0] // {}) as $s
+        | ($s.rules // []) | map((.toolName // "") + (if .ruleContent then "(" + .ruleContent + ")" else "" end)) | join(", "))
+  elif $e == "Elicitation" then base("waiting"; "question"; (msg | if . == "" then (.server_name // "MCP") else . end))
+  elif $e == "Notification" then
+    (.notification_type // "") as $n |
+    if $n == "permission_prompt" then base("waiting"; "permission"; msg)
+    elif $n == "elicitation_dialog" then base("waiting"; "question"; msg)
+    elif $n == "idle_prompt" then base("idle"; ""; "")
+    else empty end
+  elif $e == "Stop" then base("idle"; ""; "") | .agents = 0
+  elif $e == "StopFailure" then base("error"; ""; (($in.error // "error") | .[0:90])) | .error = (($in.error // "") | .[0:90])
+  elif $e == "SubagentStart" or $e == "TaskCreated" then
+    base(($prev.status // "working"); ($prev.kind // ""); ($prev.detail // "")) | .agents = agents + 1
+  elif $e == "SubagentStop" or $e == "TaskCompleted" then
+    base(($prev.status // "working"); ($prev.kind // ""); ($prev.detail // "")) | .agents = ([agents - 1, 0] | max)
+  else empty end
+' 2>/dev/null)"
+
+[[ -n "$out" ]] || exit 0
+if [[ "$out" == '"DELETE"' ]]; then rm -f "$file"; exit 0; fi
+
+mkdir -p "$STATE_DIR" 2>/dev/null || exit 0
+tmp="$(mktemp "$STATE_DIR/.tmp.XXXXXX")" || exit 0
+printf '%s\n' "$out" > "$tmp" && mv -f "$tmp" "$file"
+rm -f "$tmp" 2>/dev/null
+exit 0

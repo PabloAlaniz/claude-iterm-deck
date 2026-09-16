@@ -1,0 +1,10 @@
+node_modules/
+dist/
+plugin/*.sdPlugin/bin/
+plugin/*.sdPlugin/logs/
+plugin/*.sdPlugin/hooks/
+plugin/*.sdPlugin/*.streamDeckProfile
+profile/dist/
+applescripts/build/
+.DS_Store
+docs/internal/
